@@ -1,0 +1,27 @@
+{
+  "token": "",
+  "verifyToken": "",
+  "cmdPrefix": [".", "。", "/"],
+  "host": "localhost",
+  "port": 3000,
+  "path": "/VoiceLuck/wh",
+  "useWebhook": false,
+  "loggerLevel": {
+    "main": "INFO",
+    "jetty": "INFO",
+    "mongodb": "WARN"
+  },
+  "database": {
+    "host": "localhost",
+    "port": 27017,
+    "user": "",
+    "password": "",
+    "database": "VoiceLuck"
+  },
+  "superAdmins": {
+    "user": [],
+    "guild": {
+      "xxxxxxxxx": []
+    }
+  }
+}
