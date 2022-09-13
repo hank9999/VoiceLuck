@@ -6,14 +6,16 @@ import org.litote.kmongo.eq
 import org.litote.kmongo.setValue
 
 class PMAdd {
-    suspend fun addRole(guild: String, roles: List<Int>) {
-        val result = db.tokens.findOne(Permission::guild eq guild)
-        val permission = result ?: Permission(guild)
-        permission.roles.addAll(roles.toSet())
-        if (result == null) {
-            db.tokens.insertOne(permission)
-        } else {
-            db.tokens.updateOne(Permission::guild eq guild, setValue(Permission::roles, permission.roles))
+    companion object {
+        suspend fun addRoles(guild: String, roles: List<Int>): Boolean {
+            val result = db.tokens.findOne(Permission::guild eq guild)
+            val permission = result ?: Permission(guild)
+            permission.roles.addAll(roles.toSet())
+            return if (result == null) {
+                db.tokens.insertOne(permission).wasAcknowledged()
+            } else {
+                db.tokens.updateOne(Permission::guild eq guild, setValue(Permission::roles, permission.roles)).wasAcknowledged()
+            }
         }
     }
 }

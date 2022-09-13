@@ -52,6 +52,11 @@ class PMCheck {
             return (permission.roles intersect roles.toSet()).isNotEmpty()
         }
 
+        suspend fun checkRole(guild: String, role: Int): Boolean {
+            val permission = db.tokens.findOne(Permission::guild eq guild) ?: return false
+            return permission.roles.contains(role)
+        }
+
         suspend fun checkLuck(guild: String, userId: String, roles: List<Int>): Boolean {
             return if (checkGuildMaster(guild, userId)) {
                 true

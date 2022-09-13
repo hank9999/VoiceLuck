@@ -5,14 +5,25 @@ import com.github.hank9999.kook.card.Card
 import com.github.hank9999.kook.card.CardMessage
 import com.github.hank9999.kook.card.Element
 import com.github.hank9999.kook.card.Module
+import com.github.hank9999.kook.json.JSON
+import com.github.hank9999.kook.json.JSON.Extension.Int
+import com.github.hank9999.kook.json.JSON.Extension.String
+import com.github.hank9999.kook.json.JSON.Extension.get
+import com.github.hank9999.kook.types.Event
 import com.github.hank9999.kook.types.Message
 import com.github.hank9999.kook.types.Type
+import com.github.hank9999.kook.types.User
+import com.github.hank9999.kook.types.types.EventTypes
 import com.github.hank9999.voiceluck.VoiceLuck.kookApi
 import com.github.hank9999.voiceluck.database.types.Luck
 import com.github.hank9999.voiceluck.handler.LuckHandler
+import com.github.hank9999.voiceluck.permission.PMAdd
 import com.github.hank9999.voiceluck.permission.PMCheck
+import com.github.hank9999.voiceluck.permission.PMDel
+import com.github.hank9999.voiceluck.utils.Generators.Companion.genPermissionCard
 import com.github.hank9999.voiceluck.utils.TimeUtils
 import com.github.hank9999.voiceluck.utils.Utils.Companion.replyEx
+import kotlinx.serialization.json.decodeFromJsonElement
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -87,6 +98,61 @@ class Commands {
         )
         LuckHandler.newLuck(luck)
         logger.info("新增抽奖 $luck")
+    }
+
+    @Bot.OnCommand("permission", aliases = ["权限管理"])
+    suspend fun permission(msg: Message) {
+        if (!PMCheck.checkAdmin(msg.extra.guildId, msg.authorId)) {
+            msg.replyEx("您没有权限执行此操作")
+            return
+        }
+        val card = genPermissionCard(msg.extra.guildId)
+        msg.replyEx(card)
+    }
+
+    @Bot.OnEvent(EventTypes.MESSAGE_BTN_CLICK)
+    suspend fun buttonClickHandler(event: Event) {
+        try {
+            val user = JSON.json.decodeFromJsonElement<User>(event.extra.body["user_info"])
+            val guildId = event.extra.body["guild_id"].String
+            val channelId = event.extra.body["target_id"].String
+            if (!PMCheck.checkAdmin(guildId, user.id)) {
+                kookApi.Message().create(channelId, "您没有权限进行此操作", tempTargetId = user.id)
+                return
+            }
+            val value = JSON.json.parseToJsonElement(event.extra.body["value"].String)
+            val msgId = event.extra.body["msg_id"].String
+            when (value["type"].String) {
+                "closePanel" -> kookApi.Message().delete(msgId)
+                "permRemove" -> {
+                    val roleId = value["role"].Int
+                    if (!PMCheck.checkRole(guildId, roleId)) {
+                        kookApi.Message().create(channelId, "角色 $roleId 已没有语音抽奖权限", tempTargetId = user.id)
+                    } else {
+                        if (PMDel.delRoles(guildId, listOf(roleId))) {
+                            kookApi.Message().update(msgId, genPermissionCard(guildId))
+                        } else {
+                            kookApi.Message().create(channelId, "语音抽奖权限更新失败, 可能从未添加过权限, 请先添加一个或稍后再试, 如还无法使用 请联系维护", tempTargetId = user.id)
+                        }
+                    }
+                }
+                "permGive" -> {
+                    val roleId = value["role"].Int
+                    if (PMCheck.checkRole(guildId, roleId)) {
+                        kookApi.Message().create(channelId, "角色 $roleId 已有语音抽奖权限", tempTargetId = user.id)
+                    } else {
+                        if (PMAdd.addRoles(guildId, listOf(roleId))) {
+                            kookApi.Message().update(msgId, genPermissionCard(guildId))
+                        } else {
+                            kookApi.Message().create(channelId, "语音抽奖权限更新失败, 请稍后再试或联系维护", tempTargetId = user.id)
+                        }
+                    }
+                }
+                else -> {}
+            }
+        } catch (ex: Exception) {
+            logger.error("${ex.message}\n${ex.stackTraceToString()}")
+        }
     }
 
     fun getParams(content: String): MutableList<String> {
