@@ -100,6 +100,24 @@ class Commands {
         logger.info("新增抽奖 $luck")
     }
 
+    @Bot.OnCommand("delLuck", aliases = ["删除语音抽奖"])
+    suspend fun delLuck(msg: Message) {
+        if (!PMCheck.checkLuck(msg.extra.guildId, msg.authorId, msg.extra.author.roles)) {
+            return
+        }
+        val params = getParams(msg.content.removeEscape())
+        if (params.size != 1) {
+            msg.replyEx("参数不正确, 指令后加抽奖ID")
+            return
+        }
+        val luckId = params.removeAt(0).trim()
+        if (LuckHandler.delLuck(luckId)) {
+            msg.replyEx("抽奖已删除")
+        } else {
+            msg.replyEx("抽奖删除失败, 该抽奖ID可能已不存在, 如有疑问请联系维护")
+        }
+    }
+
     @Bot.OnCommand("permission", aliases = ["权限管理"])
     suspend fun permission(msg: Message) {
         if (!PMCheck.checkAdmin(msg.extra.guildId, msg.authorId)) {

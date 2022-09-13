@@ -45,6 +45,15 @@ class LuckHandler {
             luckList.removeIf { it.uuid == uuid }
         }
 
+        suspend fun delLuck(uuid: String): Boolean {
+            var dbResult = false
+            val data = db.lucks.findOne(Luck::uuid eq uuid) ?: return false
+            kookApi.Message().delete(data.luckMessageId)
+            dbResult = db.lucks.deleteOne((Luck::uuid eq uuid)).wasAcknowledged()
+            luckList.removeIf { it.uuid == uuid }
+            return dbResult
+        }
+
         fun init() {
             coroutineScope.launch {
                 while (true) {
