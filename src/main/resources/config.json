@@ -18,8 +18,8 @@
     "password": "",
     "database": "VoiceLuck"
   },
-  "superAdmins": {
-    "user": [],
+  "superAdmin": {
+    "users": [],
     "guild": {
       "xxxxxxxxx": []
     }
