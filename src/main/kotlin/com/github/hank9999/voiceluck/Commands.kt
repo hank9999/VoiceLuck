@@ -118,7 +118,7 @@ class Commands {
         }
     }
 
-    @Bot.OnCommand("permission", aliases = ["权限管理"])
+    @Bot.OnCommand("vlPermission", aliases = ["语音抽奖权限管理"])
     suspend fun permission(msg: Message) {
         if (!PMCheck.checkAdmin(msg.extra.guildId, msg.authorId)) {
             msg.replyEx("您没有权限执行此操作")
