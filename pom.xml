@@ -73,7 +73,7 @@
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
                         <manifest>
-                            <mainClass>com.github.hank9999.mcbot.MCBot</mainClass>
+                            <mainClass>com.github.hank9999.voiceluck.VoiceLuck</mainClass>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
                         </manifest>
