@@ -48,7 +48,9 @@ class LuckHandler {
         suspend fun delLuck(uuid: String): Boolean {
             try {
                 val data = db.lucks.findOne(Luck::uuid eq uuid) ?: return false
-                kookApi.Message().delete(data.luckMessageId)
+                try {
+                    kookApi.Message().delete(data.luckMessageId)
+                } catch (_: Exception) {}
                 val dbResult = db.lucks.deleteOne((Luck::uuid eq uuid)).wasAcknowledged()
                 luckList.removeIf { it.uuid == uuid }
                 return dbResult
